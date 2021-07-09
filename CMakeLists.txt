@@ -9,9 +9,9 @@ set(CMAKE_CXX_COMPILER "g++")
 project(spekter CXX)
 enable_testing()
 
-set(headers include/spekter.h)
+file(GLOB headers include/spekter.h)
 
-set(sources src/main.cpp)
+file(GLOB sources src/main.cpp src/tokenizer/token/token.cpp)
 
 add_executable(spekter ${sources} ${headers})
 
