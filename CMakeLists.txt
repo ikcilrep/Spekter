@@ -11,7 +11,7 @@ enable_testing()
 
 file(GLOB headers include/spekter.h)
 
-file(GLOB sources src/main.cpp src/tokenizer/token/token.cpp)
+file(GLOB sources src/main.cpp src/tokenizer/token/token.cpp src/tokenizer/tokenizer.cpp)
 
 add_executable(spekter ${sources} ${headers})
 
