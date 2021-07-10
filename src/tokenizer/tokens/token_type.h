@@ -24,6 +24,8 @@ namespace spekter
         NEGATION_OPERATOR,
         DOT_OPERATOR,
 
+        TRY_KEYWORD,
+        CATCH_KEYWORD,
         IMPORT_KEYWORD,
         FROM_KEYWORD,
         IF_KEYWORD,
