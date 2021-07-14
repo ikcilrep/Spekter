@@ -5,6 +5,7 @@
 #include <istream>
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 #include "tokens/token.h"
 
 
@@ -13,8 +14,7 @@ namespace spekter
 {
     class tokenizer
     {
-        template<typename Function>
-        void gather_characters(Function is_in_group);
+        void gather_characters(std::function<bool(char)> is_in_group);
 
         std::unique_ptr<std::istream> code;
         std::optional<char> current_character;

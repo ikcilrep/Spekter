@@ -89,8 +89,7 @@ tokenizer::tokenizer(std::unique_ptr<std::istream> code)
     next_character();
 }
 
-template<typename Function>
-void tokenizer::gather_characters(Function is_in_group) {
+void tokenizer::gather_characters(std::function<bool(char)> is_in_group) {
     do {
         next_token_text += current_character.value();
         next_character();
