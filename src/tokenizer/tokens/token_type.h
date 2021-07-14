@@ -86,7 +86,7 @@ namespace spekter
         STRING_LITERAL,
         INT_LITERAL,
         FLOAT_LITERAL,
-        BOOL_LITERAL,
+        BOOLEAN_LITERAL,
         CHAR_LITERAL,
 
         IDENTIFIER
