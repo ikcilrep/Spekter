@@ -27,13 +27,18 @@ namespace spekter
 
         void next_character();
         void update_line_number(char character);
+        void increment_line_number();
         token get_token_with_constant_text(const std::string& text);
 
+        token tokenize_further();
         token tokenize_operators_and_symbols();
         token tokenize_alphanumeric();
         token tokenize_number_literal();
         std::optional<token> handle_dot_after_digit_sequence(std::string next_token_text);
         token tokenize_float_literal(std::string next_token_text);
+
+        void set_current_character(char character);
+        std::optional<token> get_lazy_next_token();
 
     public:
         tokenizer(std::unique_ptr<std::istream> code);

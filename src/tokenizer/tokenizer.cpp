@@ -90,41 +90,44 @@ tokenizer::tokenizer(std::unique_ptr<std::istream> code)
 }
 
 std::optional<token> tokenizer::next_token() {
-    if (lazy_next_token.has_value()) {
-        lazy_next_token.reset();
-        return lazy_next_token;
-    }
+    if (lazy_next_token.has_value())
+        return get_lazy_next_token();
 
-    if (current_character.has_value()) {
-        if (isalpha(current_character.value())) {
-            return tokenize_alphanumeric();
-        }
-        else if (isdigit(current_character.value())) {
-            return tokenize_number_literal();
-        }
-        else if (ispunct(current_character.value())) {
-            return tokenize_operators_and_symbols();
-        }
-    }
+    if (current_character.has_value())
+        return tokenize_further();
 
     return {};
 }
 
+std::optional<token> tokenizer::get_lazy_next_token() {
+    lazy_next_token.reset();
+    return lazy_next_token;
+}
+
+token tokenizer::tokenize_further() {
+    if (isalpha(current_character.value()))
+        return tokenize_alphanumeric();
+    else if (isdigit(current_character.value()))
+        return tokenize_number_literal();
+    else if (ispunct(current_character.value()))
+        return tokenize_operators_and_symbols();
+
+    //temporary
+    return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number);
+}
 token tokenizer::tokenize_operators_and_symbols() {
     auto is_finished = [](std::string text) {return constant_text_to_token_type.contains(text);};
     std::string next_token_text = gather_characters(ispunct, is_finished);
-    if (constant_text_to_token_type.contains(next_token_text)) {
+    if (constant_text_to_token_type.contains(next_token_text))
         return get_token_with_constant_text(next_token_text);
-    }
 
     return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number, next_token_text);
 }
 
 token tokenizer::tokenize_alphanumeric() {
     std::string next_token_text = gather_characters(isalnum);
-    if (constant_text_to_token_type.contains(next_token_text)) {
+    if (constant_text_to_token_type.contains(next_token_text))
         return get_token_with_constant_text(next_token_text);
-    }
 
     return token(token_type::IDENTIFIER, line_number, char_in_line_number, char_number, next_token_text);
 }
@@ -137,9 +140,8 @@ token tokenizer::tokenize_number_literal() {
     std::string next_token_text = gather_characters(isdigit);
 
     auto float_literal_token = handle_dot_after_digit_sequence(next_token_text);
-    if (float_literal_token.has_value()) {
+    if (float_literal_token.has_value())
         return float_literal_token.value();
-    }
 
     return token(token_type::INT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
 }
@@ -147,12 +149,10 @@ token tokenizer::tokenize_number_literal() {
 std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next_token_text) {
     if (current_character == '.') {
         next_character();
-        if (isdigit(current_character.value())) {
+        if (isdigit(current_character.value()))
             return tokenize_float_literal(next_token_text);
-        }
-        else {
+        else
             lazy_next_token = token(token_type::DOT_OPERATOR, line_number, char_in_line_number, char_number);
-        }
     }
     return {};
 }
@@ -174,22 +174,26 @@ std::string tokenizer::gather_characters(std::function<bool(char)> is_in_group, 
 
 void tokenizer::next_character() {
     char character;
-    if ((*this->code) >> std::noskipws >> character) {
-        char_number += 1;
-        update_line_number(character);
-        current_character = character;
-    }
-    else {
+    if ((*this->code) >> std::noskipws >> character)
+        set_current_character(character);
+    else
         current_character.reset();
-    }
+}
+
+void tokenizer::set_current_character(char character) {
+    char_number += 1;
+    update_line_number(character);
+    current_character = character;
 }
 
 void tokenizer::update_line_number(char character) {
-    if (character == '\n') {
-        line_number += 1;
-        char_in_line_number = 0;
-    }
-    else {
+    if (character == '\n')
+        increment_line_number();
+    else
         char_in_line_number += 1;
-    }
+}
+
+void tokenizer::increment_line_number() {
+    line_number += 1;
+    char_in_line_number = 0;
 }
