@@ -14,7 +14,8 @@ namespace spekter
 {
     class tokenizer
     {
-        std::string gather_characters(std::function<bool(char)> is_in_group);
+        std::string gather_characters(std::function<bool(char)> is_in_group,
+                std::function<bool(std::string)> is_finished = [](auto _) {return false;});
 
         std::unique_ptr<std::istream> code;
         std::optional<char> current_character;
@@ -29,6 +30,7 @@ namespace spekter
         token get_token_with_constant_text(const std::string& text);
 
 
+        std::optional<token> tokenize_operators_and_symbols();
         std::optional<token> tokenize_alphanumeric();
         std::optional<token> tokenize_number_literal();
         std::optional<token> handle_dot_after_digit_sequence(std::string next_token_text);

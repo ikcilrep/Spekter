@@ -102,9 +102,23 @@ std::optional<token> tokenizer::next_token() {
         else if (isdigit(current_character.value())) {
             return tokenize_number_literal();
         }
+        else if (ispunct(current_character.value())) {
+            return tokenize_operators_and_symbols();
+        }
     }
 
     return {};
+}
+
+
+std::optional<token> tokenizer::tokenize_operators_and_symbols() {
+    auto is_finished = [](std::string text) {return constant_text_to_token_type.contains(text);};
+    std::string next_token_text = gather_characters(ispunct, is_finished);
+    if (constant_text_to_token_type.contains(next_token_text)) {
+        return get_token_with_constant_text(next_token_text);
+    }
+
+    return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number, next_token_text);
 }
 
 std::optional<token> tokenizer::tokenize_alphanumeric() {
@@ -150,12 +164,12 @@ std::optional<token> tokenizer::tokenize_float_literal(std::string next_token_te
     return token(token_type::FLOAT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
 }
 
-std::string tokenizer::gather_characters(std::function<bool(char)> is_in_group) {
+std::string tokenizer::gather_characters(std::function<bool(char)> is_in_group, std::function<bool(std::string)> is_finished) {
     std::string text = "";
     do {
         text += current_character.value();
         next_character();
-    } while (current_character.has_value() && is_in_group(current_character.value()));
+    } while (current_character.has_value() && is_in_group(current_character.value()) && !is_finished(text));
     return text;
 }
 
