@@ -89,11 +89,13 @@ tokenizer::tokenizer(std::unique_ptr<std::istream> code)
     next_character();
 }
 
-void tokenizer::gather_characters(std::function<bool(char)> is_in_group) {
+std::string tokenizer::gather_characters(std::function<bool(char)> is_in_group) {
+    std::string text = "";
     do {
-        next_token_text += current_character.value();
+        text += current_character.value();
         next_character();
     } while (current_character.has_value() && is_in_group(current_character.value()));
+    return text;
 }
 
 token tokenizer::get_token_with_constant_text(const std::string& text) {
@@ -123,19 +125,19 @@ void tokenizer::next_character() {
 }
 
 std::optional<token> tokenizer::tokenize_alphanumeric() {
-    gather_characters(isalnum);
+    std::string next_token_text = gather_characters(isalnum);
     if (constant_text_to_token_type.contains(next_token_text)) {
         return get_token_with_constant_text(next_token_text);
     }
 
-    return token(token_type::IDENTIFIER, line_number, char_in_line_number, char_number);
+    return token(token_type::IDENTIFIER, line_number, char_in_line_number, char_number, next_token_text);
 }
 
-std::optional<token> tokenizer::handle_dot_after_digit_sequence() {
+std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next_token_text) {
     if (current_character == '.') {
         next_character();
         if (isdigit(current_character.value())) {
-            return tokenize_float_literal();
+            return tokenize_float_literal(next_token_text);
         }
         else {
             lazy_next_token = token(token_type::DOT_OPERATOR, line_number, char_in_line_number, char_number);
@@ -144,21 +146,21 @@ std::optional<token> tokenizer::handle_dot_after_digit_sequence() {
     return {};
 }
 
-std::optional<token> tokenizer::tokenize_float_literal() {
+std::optional<token> tokenizer::tokenize_float_literal(std::string next_token_text) {
     next_token_text += '.';
-    gather_characters(isdigit);
-    return token(token_type::FLOAT_LITERAL, line_number, char_in_line_number, char_number);
+    next_token_text += gather_characters(isdigit);
+    return token(token_type::FLOAT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
 }
 
 std::optional<token> tokenizer::tokenize_number_literal() {
-    gather_characters(isdigit);
+    std::string next_token_text = gather_characters(isdigit);
 
-    auto float_literal_token = handle_dot_after_digit_sequence();
+    auto float_literal_token = handle_dot_after_digit_sequence(next_token_text);
     if (float_literal_token.has_value()) {
         return float_literal_token;
     }
 
-    return token(token_type::INT_LITERAL, line_number, char_in_line_number, char_number);
+    return token(token_type::INT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
 }
 
 
@@ -168,16 +170,14 @@ std::optional<token> tokenizer::next_token() {
         return lazy_next_token;
     }
 
-    std::optional<token> next_token;
     if (current_character.has_value()) {
         if (isalpha(current_character.value())) {
-            next_token = tokenize_alphanumeric();
+            return tokenize_alphanumeric();
         }
         else if (isdigit(current_character.value())) {
-            next_token = tokenize_number_literal();
+            return tokenize_number_literal();
         }
     }
 
-    next_token_text = "";
-    return next_token;
+    return {};
 }
