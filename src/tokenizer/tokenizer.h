@@ -29,12 +29,11 @@ namespace spekter
         void update_line_number(char character);
         token get_token_with_constant_text(const std::string& text);
 
-
-        std::optional<token> tokenize_operators_and_symbols();
-        std::optional<token> tokenize_alphanumeric();
-        std::optional<token> tokenize_number_literal();
+        token tokenize_operators_and_symbols();
+        token tokenize_alphanumeric();
+        token tokenize_number_literal();
         std::optional<token> handle_dot_after_digit_sequence(std::string next_token_text);
-        std::optional<token> tokenize_float_literal(std::string next_token_text);
+        token tokenize_float_literal(std::string next_token_text);
 
     public:
         tokenizer(std::unique_ptr<std::istream> code);

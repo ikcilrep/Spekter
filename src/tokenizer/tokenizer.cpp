@@ -110,8 +110,7 @@ std::optional<token> tokenizer::next_token() {
     return {};
 }
 
-
-std::optional<token> tokenizer::tokenize_operators_and_symbols() {
+token tokenizer::tokenize_operators_and_symbols() {
     auto is_finished = [](std::string text) {return constant_text_to_token_type.contains(text);};
     std::string next_token_text = gather_characters(ispunct, is_finished);
     if (constant_text_to_token_type.contains(next_token_text)) {
@@ -121,7 +120,7 @@ std::optional<token> tokenizer::tokenize_operators_and_symbols() {
     return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number, next_token_text);
 }
 
-std::optional<token> tokenizer::tokenize_alphanumeric() {
+token tokenizer::tokenize_alphanumeric() {
     std::string next_token_text = gather_characters(isalnum);
     if (constant_text_to_token_type.contains(next_token_text)) {
         return get_token_with_constant_text(next_token_text);
@@ -134,12 +133,12 @@ token tokenizer::get_token_with_constant_text(const std::string& text) {
     return token(tokenizer::constant_text_to_token_type.at(text), line_number, char_in_line_number, char_number);
 }
 
-std::optional<token> tokenizer::tokenize_number_literal() {
+token tokenizer::tokenize_number_literal() {
     std::string next_token_text = gather_characters(isdigit);
 
     auto float_literal_token = handle_dot_after_digit_sequence(next_token_text);
     if (float_literal_token.has_value()) {
-        return float_literal_token;
+        return float_literal_token.value();
     }
 
     return token(token_type::INT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
@@ -158,7 +157,7 @@ std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next
     return {};
 }
 
-std::optional<token> tokenizer::tokenize_float_literal(std::string next_token_text) {
+token tokenizer::tokenize_float_literal(std::string next_token_text) {
     next_token_text += '.';
     next_token_text += gather_characters(isdigit);
     return token(token_type::FLOAT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
