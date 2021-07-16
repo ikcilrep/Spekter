@@ -89,7 +89,9 @@ namespace spekter
         BOOLEAN_LITERAL,
         CHAR_LITERAL,
 
-        IDENTIFIER
+        IDENTIFIER,
+        
+        UNKNOWN
     };
 }
 
