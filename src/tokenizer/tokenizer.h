@@ -29,7 +29,7 @@ namespace spekter
         static const std::unordered_map<std::string, token_type> constant_text_to_token_type;
         static const std::unordered_map<char, char32_t> escapable_characters_to_escaped;
 
-        character_iterator iterator; 
+        std::shared_ptr<character_iterator> iterator; 
         token get_token_with_constant_text(const std::string& text);
 
         char32_t parse_escaped_character();
