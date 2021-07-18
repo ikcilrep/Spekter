@@ -1,6 +1,7 @@
 #include "tokenizer.h"
 #include "tokens/token.h"
 #include <locale>
+#include <stdexcept>
 
 using namespace spekter;
 
@@ -83,6 +84,19 @@ const std::unordered_map<std::string, token_type> tokenizer::constant_text_to_to
     {"false", token_type::BOOLEAN_LITERAL},
 };
 
+const std::unordered_map<char, char32_t> escapable_characters = {
+    {'\'', '\''},
+    {'\"', '\"'},
+    {'\\', '\\'},
+    {'a', '\a'},
+    {'b', '\b'},
+    {'f', '\f'},
+    {'n', '\n'},
+    {'r', '\r'},
+    {'t', '\t'},
+    {'v', '\v'} };
+
+
 tokenizer::tokenizer(std::unique_ptr<std::istream> code)
 {
     this->code = std::move(code);
@@ -111,10 +125,67 @@ token tokenizer::tokenize_further() {
         return tokenize_number_literal();
     else if (ispunct(current_character.value()))
         return tokenize_operators_and_symbols();
+    else if (current_character.value() == '\\')
+        return tokenize_string_literal();
 
     //temporary
     return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number);
 }
+
+char32_t tokenizer::parse_unicode_character_code(const std::string& unicode_character_code_text) {
+    try {
+        return std::stoi(unicode_character_code_text, 0, 16);
+    }
+    catch (const std::invalid_argument& exception) {
+        throw std::invalid_argument(
+            std::string("The escaped character code \'") + unicode_character_code_text + "\' is not hex value.");
+    }
+}
+
+
+char32_t tokenizer::parse_unicode_character() {
+    next_character();
+    if (current_character != '{')
+        throw new std::invalid_argument(
+            std::string("Invalid character to escape \'\\") + current_character.value() + "u\'.");
+
+    std::string unicode_character_code_text =
+        gather_characters([](char character) {return isxdigit(character) && character != '}';});
+
+    return parse_unicode_character_code(unicode_character_code_text);
+
+}
+
+char32_t tokenizer::parse_escaped_character() {
+    if (escapable_characters.contains(current_character.value()))
+        return escapable_characters.at(current_character.value());
+    else if (current_character == 'u')
+        return parse_unicode_character();
+    else
+        throw new std::invalid_argument(std::string("Invalid character to escape \'\\") + current_character.value() + "\'.");
+}
+
+std::string tokenizer::gather_string_literal_characters() {
+    std::string text = "";
+    next_character();
+    while (current_character != '\"') {
+        next_character();
+        if (current_character == '\\') {
+            text += parse_escaped_character();
+        }
+        else {
+            text += current_character.value();
+        }
+        next_character();
+    }
+
+    return text;
+}
+
+token tokenizer::tokenize_string_literal() {
+    return token(token_type::STRING_LITERAL, line_number, char_in_line_number, char_number, gather_string_literal_characters());
+}
+
 token tokenizer::tokenize_operators_and_symbols() {
     auto is_finished = [](std::string text) {return constant_text_to_token_type.contains(text);};
     std::string next_token_text = gather_characters(ispunct, is_finished);
@@ -197,3 +268,4 @@ void tokenizer::increment_line_number() {
     line_number += 1;
     char_in_line_number = 0;
 }
+
