@@ -99,15 +99,23 @@ const std::unordered_map<char, char32_t> escapable_characters = {
 
 tokenizer::tokenizer(std::unique_ptr<std::istream> code)
 {
-    this->code = std::move(code);
-    next_character();
+    iterator = character_iterator(std::move(code));
+    iterator.next_character();
+}
+
+token tokenizer::create_token(token_type type) {
+    return token(type, iterator.line_number, iterator.char_in_line_number, iterator.char_number);
+}
+
+token tokenizer::create_token(token_type type, std::string text) {
+    return token(type, iterator.line_number, iterator.char_in_line_number, iterator.char_number, text);
 }
 
 std::optional<token> tokenizer::next_token() {
     if (lazy_next_token.has_value())
         return get_lazy_next_token();
 
-    if (current_character.has_value())
+    if (iterator.current_character.has_value())
         return tokenize_further();
 
     return {};
@@ -119,17 +127,17 @@ std::optional<token> tokenizer::get_lazy_next_token() {
 }
 
 token tokenizer::tokenize_further() {
-    if (isalpha(current_character.value()))
+    if (isalpha(iterator.current_character.value()))
         return tokenize_alphanumeric();
-    else if (isdigit(current_character.value()))
+    else if (isdigit(iterator.current_character.value()))
         return tokenize_number_literal();
-    else if (ispunct(current_character.value()))
+    else if (ispunct(iterator.current_character.value()))
         return tokenize_operators_and_symbols();
-    else if (current_character.value() == '\\')
+    else if (iterator.current_character.value() == '\\')
         return tokenize_string_literal();
 
     //temporary
-    return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number);
+    return create_token(token_type::UNKNOWN);
 }
 
 char32_t tokenizer::parse_unicode_character_code(const std::string& unicode_character_code_text) {
@@ -144,10 +152,10 @@ char32_t tokenizer::parse_unicode_character_code(const std::string& unicode_char
 
 
 char32_t tokenizer::parse_unicode_character() {
-    next_character();
-    if (current_character != '{')
+    iterator.next_character();
+    if (iterator.current_character != '{')
         throw new std::invalid_argument(
-            std::string("Invalid character to escape \'\\") + current_character.value() + "u\'.");
+            std::string("Invalid character to escape \'\\") + iterator.current_character.value() + "u\'.");
 
     std::string unicode_character_code_text =
         gather_characters([](char character) {return isxdigit(character) && character != '}';});
@@ -157,33 +165,33 @@ char32_t tokenizer::parse_unicode_character() {
 }
 
 char32_t tokenizer::parse_escaped_character() {
-    if (escapable_characters.contains(current_character.value()))
-        return escapable_characters.at(current_character.value());
-    else if (current_character == 'u')
+    if (escapable_characters.contains(iterator.current_character.value()))
+        return escapable_characters.at(iterator.current_character.value());
+    else if (iterator.current_character == 'u')
         return parse_unicode_character();
     else
-        throw new std::invalid_argument(std::string("Invalid character to escape \'\\") + current_character.value() + "\'.");
+        throw new std::invalid_argument(std::string("Invalid character to escape \'\\") + iterator.current_character.value() + "\'.");
 }
 
 std::string tokenizer::gather_string_literal_characters() {
     std::string text = "";
-    next_character();
-    while (current_character != '\"') {
-        next_character();
-        if (current_character == '\\') {
+    iterator.next_character();
+    while (iterator.current_character != '\"') {
+        iterator.next_character();
+        if (iterator.current_character == '\\') {
             text += parse_escaped_character();
         }
         else {
-            text += current_character.value();
+            text += iterator.current_character.value();
         }
-        next_character();
+        iterator.next_character();
     }
 
     return text;
 }
 
 token tokenizer::tokenize_string_literal() {
-    return token(token_type::STRING_LITERAL, line_number, char_in_line_number, char_number, gather_string_literal_characters());
+    return create_token(token_type::STRING_LITERAL, gather_string_literal_characters());
 }
 
 token tokenizer::tokenize_operators_and_symbols() {
@@ -192,7 +200,8 @@ token tokenizer::tokenize_operators_and_symbols() {
     if (constant_text_to_token_type.contains(next_token_text))
         return get_token_with_constant_text(next_token_text);
 
-    return token(token_type::UNKNOWN, line_number, char_in_line_number, char_number, next_token_text);
+
+    return create_token(token_type::UNKNOWN, next_token_text);
 }
 
 token tokenizer::tokenize_alphanumeric() {
@@ -200,11 +209,11 @@ token tokenizer::tokenize_alphanumeric() {
     if (constant_text_to_token_type.contains(next_token_text))
         return get_token_with_constant_text(next_token_text);
 
-    return token(token_type::IDENTIFIER, line_number, char_in_line_number, char_number, next_token_text);
+    return create_token(token_type::IDENTIFIER, next_token_text);
 }
 
 token tokenizer::get_token_with_constant_text(const std::string& text) {
-    return token(tokenizer::constant_text_to_token_type.at(text), line_number, char_in_line_number, char_number);
+    return create_token(tokenizer::constant_text_to_token_type.at(text));
 }
 
 token tokenizer::tokenize_number_literal() {
@@ -214,16 +223,16 @@ token tokenizer::tokenize_number_literal() {
     if (float_literal_token.has_value())
         return float_literal_token.value();
 
-    return token(token_type::INT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
+    return create_token(token_type::INT_LITERAL, next_token_text);
 }
 
 std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next_token_text) {
-    if (current_character == '.') {
-        next_character();
-        if (isdigit(current_character.value()))
+    if (iterator.current_character == '.') {
+        iterator.next_character();
+        if (isdigit(iterator.current_character.value()))
             return tokenize_float_literal(next_token_text);
         else
-            lazy_next_token = token(token_type::DOT_OPERATOR, line_number, char_in_line_number, char_number);
+            lazy_next_token = create_token(token_type::DOT_OPERATOR);
     }
     return {};
 }
@@ -231,41 +240,17 @@ std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next
 token tokenizer::tokenize_float_literal(std::string next_token_text) {
     next_token_text += '.';
     next_token_text += gather_characters(isdigit);
-    return token(token_type::FLOAT_LITERAL, line_number, char_in_line_number, char_number, next_token_text);
+    return create_token(token_type::FLOAT_LITERAL, next_token_text);
 }
 
 std::string tokenizer::gather_characters(std::function<bool(char)> is_in_group, std::function<bool(std::string)> is_finished) {
     std::string text = "";
     do {
-        text += current_character.value();
-        next_character();
-    } while (current_character.has_value() && is_in_group(current_character.value()) && !is_finished(text));
+        text += iterator.current_character.value();
+        iterator.next_character();
+    } while (iterator.current_character.has_value() && is_in_group(iterator.current_character.value()) && !is_finished(text));
     return text;
 }
 
-void tokenizer::next_character() {
-    char character;
-    if ((*this->code) >> std::noskipws >> character)
-        set_current_character(character);
-    else
-        current_character.reset();
-}
 
-void tokenizer::set_current_character(char character) {
-    char_number += 1;
-    update_line_number(character);
-    current_character = character;
-}
-
-void tokenizer::update_line_number(char character) {
-    if (character == '\n')
-        increment_line_number();
-    else
-        char_in_line_number += 1;
-}
-
-void tokenizer::increment_line_number() {
-    line_number += 1;
-    char_in_line_number = 0;
-}
 

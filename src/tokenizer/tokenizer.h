@@ -7,6 +7,7 @@
 #include <functional>
 #include <cuchar>
 #include "tokens/token.h"
+#include "character_iterator.h"
 
 
 
@@ -14,6 +15,9 @@ namespace spekter
 {
     class tokenizer
     {
+        token create_token(token_type type);
+        token create_token(token_type type, std::string text);
+
         std::string gather_characters(std::function<bool(char)> is_in_group,
                 std::function<bool(std::string)> is_finished = [](auto _) {return false;});
                
@@ -21,20 +25,12 @@ namespace spekter
 
         void add_character_to_string_literal(std::string& next_token_text); 
 
-        std::unique_ptr<std::istream> code;
-        std::optional<char> current_character;
         std::optional<token> lazy_next_token;
-        int char_number = 0;
-        int line_number = 0;
-        int char_in_line_number = 0;
         static const std::unordered_map<std::string, token_type> constant_text_to_token_type;
         static const std::unordered_map<char, char32_t> escapable_characters_to_escaped;
 
-        void next_character();
-        void update_line_number(char character);
-        void increment_line_number();
+        character_iterator iterator; 
         token get_token_with_constant_text(const std::string& text);
-
 
         char32_t parse_escaped_character();
         char32_t parse_unicode_character();
@@ -48,8 +44,7 @@ namespace spekter
         std::optional<token> handle_dot_after_digit_sequence(std::string next_token_text);
         token tokenize_float_literal(std::string next_token_text);
 
-        void set_current_character(char character);
-        std::optional<token> get_lazy_next_token();
+       std::optional<token> get_lazy_next_token();
 
     public:
         tokenizer(std::unique_ptr<std::istream> code);
