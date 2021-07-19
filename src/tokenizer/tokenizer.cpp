@@ -90,16 +90,11 @@ tokenizer::tokenizer(std::unique_ptr<std::istream> code)
     iterator = make_shared<character_iterator>(std::move(code));
     conditional_gatherer = conditional_character_gatherer(iterator);
     string_gatherer = string_literal_gatherer(iterator);
+    token_creator = quick_token_creator(iterator);
     iterator->next_character();
 }
 
-token tokenizer::create_token(token_type type) {
-    return token(type, iterator->line_number, iterator->char_in_line_number, iterator->char_number);
-}
 
-token tokenizer::create_token(token_type type, std::string text) {
-    return token(type, iterator->line_number, iterator->char_in_line_number, iterator->char_number, text);
-}
 
 std::optional<token> tokenizer::next_token() {
     if (lazy_next_token.has_value())
@@ -127,13 +122,13 @@ token tokenizer::tokenize_further() {
         return tokenize_string_literal();
 
     //temporary
-    return create_token(token_type::UNKNOWN);
+    return token_creator.create_token(token_type::UNKNOWN);
 }
 
 
 
 token tokenizer::tokenize_string_literal() {
-    return create_token(token_type::STRING_LITERAL, string_gatherer.gather_characters());
+    return token_creator.create_token(token_type::STRING_LITERAL, string_gatherer.gather_characters());
 }
 
 token tokenizer::tokenize_operators_and_symbols() {
@@ -143,7 +138,7 @@ token tokenizer::tokenize_operators_and_symbols() {
         return get_token_with_constant_text(next_token_text);
 
 
-    return create_token(token_type::UNKNOWN, next_token_text);
+    return token_creator.create_token(token_type::UNKNOWN, next_token_text);
 }
 
 token tokenizer::tokenize_alphanumeric() {
@@ -151,11 +146,11 @@ token tokenizer::tokenize_alphanumeric() {
     if (constant_text_to_token_type.contains(next_token_text))
         return get_token_with_constant_text(next_token_text);
 
-    return create_token(token_type::IDENTIFIER, next_token_text);
+    return token_creator.create_token(token_type::IDENTIFIER, next_token_text);
 }
 
 token tokenizer::get_token_with_constant_text(const std::string& text) {
-    return create_token(tokenizer::constant_text_to_token_type.at(text));
+    return token_creator.create_token(tokenizer::constant_text_to_token_type.at(text));
 }
 
 token tokenizer::tokenize_number_literal() {
@@ -165,7 +160,7 @@ token tokenizer::tokenize_number_literal() {
     if (float_literal_token.has_value())
         return float_literal_token.value();
 
-    return create_token(token_type::INT_LITERAL, next_token_text);
+    return token_creator.create_token(token_type::INT_LITERAL, next_token_text);
 }
 
 std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next_token_text) {
@@ -174,7 +169,7 @@ std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next
         if (isdigit(iterator->current_character.value()))
             return tokenize_float_literal(next_token_text);
         else
-            lazy_next_token = create_token(token_type::DOT_OPERATOR);
+            lazy_next_token = token_creator.create_token(token_type::DOT_OPERATOR);
     }
     return {};
 }
@@ -182,7 +177,7 @@ std::optional<token> tokenizer::handle_dot_after_digit_sequence(std::string next
 token tokenizer::tokenize_float_literal(std::string next_token_text) {
     next_token_text += '.';
     next_token_text += conditional_gatherer.gather_characters(isdigit);
-    return create_token(token_type::FLOAT_LITERAL, next_token_text);
+    return token_creator.create_token(token_type::FLOAT_LITERAL, next_token_text);
 }
 
 

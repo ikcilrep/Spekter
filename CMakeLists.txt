@@ -18,7 +18,8 @@ file(GLOB sources src/main.cpp
                   src/tokenizer/character_iterator.cpp
                   src/tokenizer/escape_sequence_parser.cpp
                   src/tokenizer/conditional_character_gatherer.cpp
-                  src/tokenizer/string_literal_gatherer.cpp)
+                  src/tokenizer/string_literal_gatherer.cpp
+                  src/tokenizer/quick_token_creator.cpp)
 
 file(GLOB tests test/test.cc)
 

@@ -11,6 +11,7 @@
 #include "escape_sequence_parser.h"
 #include "conditional_character_gatherer.h"
 #include "string_literal_gatherer.h"
+#include "quick_token_creator.h"
 
 
 
@@ -18,10 +19,8 @@ namespace spekter
 {
     class tokenizer
     {
-        token create_token(token_type type);
-        token create_token(token_type type, std::string text);
-
-
+        quick_token_creator token_creator;
+        
         conditional_character_gatherer conditional_gatherer;
 
         string_literal_gatherer string_gatherer;
