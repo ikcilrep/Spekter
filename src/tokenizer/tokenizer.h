@@ -32,8 +32,8 @@ namespace spekter
         std::shared_ptr<character_iterator> iterator; 
         token get_token_with_constant_text(const std::string& text);
 
-        char32_t parse_escaped_character();
-        char32_t parse_unicode_character();
+        char32_t parse_escape_sequence();
+        char32_t parse_unicode_escape_sequence();
         char32_t parse_unicode_character_code(const std::string &unicode_character_code_text);
 
         token tokenize_further();

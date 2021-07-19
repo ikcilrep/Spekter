@@ -151,7 +151,7 @@ char32_t tokenizer::parse_unicode_character_code(const std::string& unicode_char
 }
 
 
-char32_t tokenizer::parse_unicode_character() {
+char32_t tokenizer::parse_unicode_escape_sequence() {
     iterator->next_character();
     if (iterator->current_character != '{')
         throw new std::invalid_argument(
@@ -164,11 +164,11 @@ char32_t tokenizer::parse_unicode_character() {
 
 }
 
-char32_t tokenizer::parse_escaped_character() {
+char32_t tokenizer::parse_escape_sequence() {
     if (escapable_characters.contains(iterator->current_character.value()))
         return escapable_characters.at(iterator->current_character.value());
     else if (iterator->current_character == 'u')
-        return parse_unicode_character();
+        return parse_unicode_escape_sequence();
     else
         throw new std::invalid_argument(std::string("Invalid character to escape \'\\") + iterator->current_character.value() + "\'.");
 }
@@ -179,7 +179,7 @@ std::string tokenizer::gather_string_literal_characters() {
     while (iterator->current_character != '\"') {
         iterator->next_character();
         if (iterator->current_character == '\\') {
-            text += parse_escaped_character();
+            text += parse_escape_sequence();
         }
         else {
             text += iterator->current_character.value();
