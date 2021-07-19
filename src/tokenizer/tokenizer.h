@@ -8,6 +8,8 @@
 #include <cuchar>
 #include "tokens/token.h"
 #include "character_iterator.h"
+#include "escape_sequence_parser.h"
+#include "conditional_character_gatherer.h"
 
 
 
@@ -18,23 +20,20 @@ namespace spekter
         token create_token(token_type type);
         token create_token(token_type type, std::string text);
 
-        std::string gather_characters(std::function<bool(char)> is_in_group,
-                std::function<bool(std::string)> is_finished = [](auto _) {return false;});
-               
+
+        conditional_character_gatherer conditional_gatherer;
+
         std::string gather_string_literal_characters();
 
         void add_character_to_string_literal(std::string& next_token_text); 
 
         std::optional<token> lazy_next_token;
         static const std::unordered_map<std::string, token_type> constant_text_to_token_type;
-        static const std::unordered_map<char, char32_t> escapable_characters_to_escaped;
 
         std::shared_ptr<character_iterator> iterator; 
         token get_token_with_constant_text(const std::string& text);
 
-        char32_t parse_escape_sequence();
-        char32_t parse_unicode_escape_sequence();
-        char32_t parse_unicode_character_code(const std::string &unicode_character_code_text);
+        escape_sequence_parser escape_parser;
 
         token tokenize_further();
         token tokenize_operators_and_symbols();
