@@ -10,6 +10,7 @@
 #include "character_iterator.h"
 #include "escape_sequence_parser.h"
 #include "conditional_character_gatherer.h"
+#include "string_literal_gatherer.h"
 
 
 
@@ -23,7 +24,7 @@ namespace spekter
 
         conditional_character_gatherer conditional_gatherer;
 
-        std::string gather_string_literal_characters();
+        string_literal_gatherer string_gatherer;
 
         void add_character_to_string_literal(std::string& next_token_text); 
 
@@ -33,7 +34,6 @@ namespace spekter
         std::shared_ptr<character_iterator> iterator; 
         token get_token_with_constant_text(const std::string& text);
 
-        escape_sequence_parser escape_parser;
 
         token tokenize_further();
         token tokenize_operators_and_symbols();

@@ -89,7 +89,7 @@ tokenizer::tokenizer(std::unique_ptr<std::istream> code)
 {
     iterator = make_shared<character_iterator>(std::move(code));
     conditional_gatherer = conditional_character_gatherer(iterator);
-    escape_parser = escape_sequence_parser(iterator);
+    string_gatherer = string_literal_gatherer(iterator);
     iterator->next_character();
 }
 
@@ -130,25 +130,10 @@ token tokenizer::tokenize_further() {
     return create_token(token_type::UNKNOWN);
 }
 
-std::string tokenizer::gather_string_literal_characters() {
-    std::string text = "";
-    iterator->next_character();
-    while (iterator->current_character != '\"') {
-        iterator->next_character();
-        if (iterator->current_character == '\\') {
-            text += escape_parser.parse_escape_sequence();
-        }
-        else {
-            text += iterator->current_character.value();
-        }
-        iterator->next_character();
-    }
 
-    return text;
-}
 
 token tokenizer::tokenize_string_literal() {
-    return create_token(token_type::STRING_LITERAL, gather_string_literal_characters());
+    return create_token(token_type::STRING_LITERAL, string_gatherer.gather_characters());
 }
 
 token tokenizer::tokenize_operators_and_symbols() {
