@@ -11,7 +11,14 @@ enable_testing()
 
 file(GLOB headers include/spekter.h)
 
-file(GLOB sources src/main.cpp src/tokenizer/tokens/token.cpp src/tokenizer/tokenizer.cpp src/tokenizer/file_tokenizer.cpp)
+file(GLOB sources src/main.cpp 
+                  src/tokenizer/tokens/token.cpp 
+                  src/tokenizer/tokenizer.cpp 
+                  src/tokenizer/file_tokenizer.cpp 
+                  src/tokenizer/character_iterator.cpp
+                  src/tokenizer/escape_sequence_parser.cpp
+                  src/tokenizer/conditional_character_gatherer.cpp
+                  src/tokenizer/string_literal_gatherer.cpp)
 
 file(GLOB tests test/test.cc)
 
