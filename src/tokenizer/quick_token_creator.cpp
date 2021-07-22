@@ -93,7 +93,7 @@ token quick_token_creator::create_token(token_type type, std::string text) {
     return token(type, iterator->line_number, iterator->char_in_line_number, iterator->char_number, text);
 }
 
-token quick_token_creator::get_token_with_constant_text(const std::string& text) {
+token quick_token_creator::create_token_with_constant_text(const std::string& text) {
     return create_token(constant_text_to_token_type.at(text));
 }
 

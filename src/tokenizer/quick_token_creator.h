@@ -14,7 +14,7 @@ namespace spekter {
     public:
         token create_token(token_type type);
         token create_token(token_type type, std::string text);
-        token get_token_with_constant_text(const std::string& text);
+        token create_token_with_constant_text(const std::string& text);
 
         static bool is_text_constant(const std::string& text);
 

@@ -51,7 +51,7 @@ token tokenizer::tokenize_operators_and_symbols() {
     auto is_finished = [](std::string text) {return quick_token_creator::is_text_constant(text);};
     std::string next_token_text = conditional_gatherer.gather_characters(ispunct, is_finished);
     if (quick_token_creator::is_text_constant(next_token_text))
-        return token_creator.get_token_with_constant_text(next_token_text);
+        return token_creator.create_token_with_constant_text(next_token_text);
 
 
     return token_creator.create_token(token_type::UNKNOWN, next_token_text);
@@ -60,7 +60,7 @@ token tokenizer::tokenize_operators_and_symbols() {
 token tokenizer::tokenize_alphanumeric() {
     std::string next_token_text = conditional_gatherer.gather_characters(isalnum);
     if (quick_token_creator::is_text_constant(next_token_text))
-        return token_creator.get_token_with_constant_text(next_token_text);
+        return token_creator.create_token_with_constant_text(next_token_text);
 
     return token_creator.create_token(token_type::IDENTIFIER, next_token_text);
 }
