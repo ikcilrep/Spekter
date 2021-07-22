@@ -20,16 +20,16 @@ namespace spekter
     class tokenizer
     {
         quick_token_creator token_creator;
-        
+
         conditional_character_gatherer conditional_gatherer;
 
         string_literal_gatherer string_gatherer;
 
-        void add_character_to_string_literal(std::string& next_token_text); 
+        void add_character_to_string_literal(std::string& next_token_text);
 
         std::optional<token> lazy_next_token;
 
-        std::shared_ptr<character_iterator> iterator; 
+        std::shared_ptr<character_iterator> iterator;
 
 
         token tokenize_further();
@@ -40,7 +40,7 @@ namespace spekter
         std::optional<token> handle_dot_after_digit_sequence(std::string next_token_text);
         token tokenize_float_literal(std::string next_token_text);
 
-       std::optional<token> get_lazy_next_token();
+        std::optional<token> get_lazy_next_token();
 
     public:
         tokenizer(std::unique_ptr<std::istream> code);
