@@ -25,7 +25,6 @@ namespace spekter
 
         string_literal_gatherer string_gatherer;
 
-        void add_character_to_string_literal(std::string& next_token_text);
 
         std::optional<token> lazy_next_token;
 

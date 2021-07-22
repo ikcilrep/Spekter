@@ -13,14 +13,17 @@ std::string string_literal_gatherer::gather_characters() {
 
     iterator->next_character();
     while (iterator->current_character != '\"') {
-        if (iterator->current_character == '\\') {
-            text += escape_parser.parse_escape_sequence();
-        }
-        else {
-            text += iterator->current_character.value();
-        }
+        add_character_to_string_literal(text);
         iterator->next_character();
     }
 
     return text;
+}
+
+void string_literal_gatherer::add_character_to_string_literal(std::string& text) {
+    if (iterator->current_character == '\\')
+        text += escape_parser.parse_escape_sequence();
+    else
+        text += iterator->current_character.value();
+
 }

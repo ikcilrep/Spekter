@@ -13,6 +13,7 @@ namespace spekter {
         std::string gather_characters();
         string_literal_gatherer();
         string_literal_gatherer(std::shared_ptr<character_iterator> iterator);
+        void add_character_to_string_literal(std::string& next_token_text);
     };
 }
 #endif 
