@@ -10,9 +10,9 @@ string_literal_gatherer::string_literal_gatherer(std::shared_ptr<character_itera
 
 std::string string_literal_gatherer::gather_characters() {
     std::string text = "";
+
     iterator->next_character();
     while (iterator->current_character != '\"') {
-        iterator->next_character();
         if (iterator->current_character == '\\') {
             text += escape_parser.parse_escape_sequence();
         }
