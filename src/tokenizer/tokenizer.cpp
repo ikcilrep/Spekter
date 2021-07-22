@@ -36,7 +36,7 @@ token tokenizer::tokenize_further() {
         return tokenize_number_literal();
     else if (ispunct(iterator->current_character.value()))
         return tokenize_operators_and_symbols();
-    else if (iterator->current_character.value() == '\\')
+    else if (iterator->current_character.value() == '\"')
         return tokenize_string_literal();
 
     //temporary
