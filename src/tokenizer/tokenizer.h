@@ -28,10 +28,8 @@ namespace spekter
         void add_character_to_string_literal(std::string& next_token_text); 
 
         std::optional<token> lazy_next_token;
-        static const std::unordered_map<std::string, token_type> constant_text_to_token_type;
 
         std::shared_ptr<character_iterator> iterator; 
-        token get_token_with_constant_text(const std::string& text);
 
 
         token tokenize_further();
