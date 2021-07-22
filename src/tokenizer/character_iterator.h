@@ -21,7 +21,7 @@ namespace spekter {
         int char_in_line_number = 0;
         std::optional<char> current_character;
         void next_character();
-
+        void skip_white_spaces();
     };
 }
 

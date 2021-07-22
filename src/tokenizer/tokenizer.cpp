@@ -30,6 +30,8 @@ std::optional<token> tokenizer::get_lazy_next_token() {
 }
 
 token tokenizer::tokenize_further() {
+    iterator->skip_white_spaces(); 
+
     if (isalpha(iterator->current_character.value()))
         return tokenize_alphanumeric();
     else if (isdigit(iterator->current_character.value()))

@@ -33,3 +33,8 @@ void character_iterator::increment_line_number() {
     line_number += 1;
     char_in_line_number = 0;
 }
+
+void character_iterator::skip_white_spaces() {
+    while (isspace(current_character.value()))
+        next_character();
+}
